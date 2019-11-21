@@ -20,6 +20,10 @@ public class GameController : MonoBehaviour{
     public GameObject painelDePerguntas;
     public GameObject painelFimRodada;
     public GameObject UIPanel;
+    public GameObject ButtonResposta1;
+    public GameObject ButtonResposta2;
+    public GameObject ButtonResposta3;
+    public GameObject ButtonResposta4;
 
     private DataController dataController;
     private RoundData rodadaAtual;
@@ -32,6 +36,8 @@ public class GameController : MonoBehaviour{
     private int player2Score;
     private int playerSelected;
     private int answerSeleted;
+
+    private int respostaCorreta;
 
     List<int> usedValues = new List<int>();
     List<GameObject> answerButtonGameObjects = new List<GameObject>();
@@ -82,7 +88,7 @@ public class GameController : MonoBehaviour{
         textoTimer.text = "Timer: " + Mathf.Round(tempoRestante).ToString();
     }
 
-    private void ShowQuestion(){
+    public async void ShowQuestion(){
         RemoveAnswerButtons();
         int random = UnityEngine.Random.Range(0,questionPool.Length);
         while(usedValues.Contains(random)){
@@ -94,18 +100,46 @@ public class GameController : MonoBehaviour{
         textoPergunta.text = questionData.textoDaPergunta;
 
         for (int i = 0; i < questionData.respostas.Length; i++){
-            GameObject answerButtongameObject = answerButtonObjectPool.GetObject();
+            // Debug.Log(questionData.respostas[i]);
+            if(questionData.respostas[i].estaCorreta){
+                respostaCorreta = i;
+            }
+            switch (i){
+                case 0:
+                    ButtonResposta1.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    break;
+                case 1:
+                    ButtonResposta2.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    break;
+                case 2:
+                    ButtonResposta3.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    break;
+                case 3:
+                    ButtonResposta4.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    break;
+                default:
+                    Debug.Log("Erro");
+                    break;
+            }
             
-            answerButtongameObject.transform.SetParent(answerButtonParent);
+            // GameObject answerButtongameObject = answerButtonObjectPool.GetObject();
+            
+            // answerButtongameObject.transform.SetParent(answerButtonParent);
 
-            answerButtonGameObjects.Add(answerButtongameObject);
+            // answerButtonGameObjects.Add(answerButtongameObject);
 
-            AnswerButton answerButton = answerButtongameObject.GetComponent<AnswerButton>();
-            answerButton.Setup(questionData.respostas[i]);
+            // AnswerButton answerButton = answerButtongameObject.GetComponent<AnswerButton>();
+            // answerButton.Setup(questionData.respostas[i]);
         }
-        Invoke("whichPlayer", 0.5f);
+        await Invoke("whichPlayer", 0.5f);
         tempoRestante = rodadaAtual.limiteDeTempo;// sempre q trocar as perguntas, resetar o tempo
-        Invoke("selectResposta", 0.2f);
+        if(playerSelected == 1){
+            Debug.Log("Player1 Joga");
+            // Invoke("selectRespostaPlayer1", 0.5f);
+        }else if(playerSelected == 2){
+            Debug.Log("Player2 Joga");
+            // Invoke("selectRespostaPlayer2", 0.5f);
+        }
         
     }
 
@@ -116,14 +150,20 @@ public class GameController : MonoBehaviour{
         }
     }
 
-    public void AnswerButtonClicked(bool estaCorreto){
-        if(estaCorreto){
-            player1Score += rodadaAtual.pontosPorAcerto;
-            textoPontosPlayer1.text = "Score: " + player1Score.ToString();
+    public void AnswerSelected(){
+        if(answerSeleted == respostaCorreta){
+            if(playerSelected == 1){
+                player1Score += rodadaAtual.pontosPorAcerto;
+                textoPontosPlayer1.text = "Player1 Score: " + player1Score.ToString();
+            }else{
+                player2Score += rodadaAtual.pontosPorAcerto;
+                textoPontosPlayer2.text = "Player2 Score: " + player1Score.ToString();
+            }
+            
         }
 
         if(questionPool.Length > questionIndex + 1){
-            if(questionIndex == 1)// acabar a partida apos 2 perguntas
+            if(questionIndex == 2)// acabar a partida apos 3 perguntas
                 Invoke("EndRound", 1.5f);
                 // EndRound();
             questionIndex ++;
@@ -158,8 +198,10 @@ public class GameController : MonoBehaviour{
             try{
                 int playerSerial = int.Parse(arduinoPort.ReadLine());
                 if(playerSerial == 1){
+                    Debug.Log("Player 1");
                     player = 1;
                 }else if(playerSerial == 2){
+                    Debug.Log("Player 2");
                     player = 2;
                 }
             }catch(System.Exception){}
@@ -175,10 +217,12 @@ public class GameController : MonoBehaviour{
         while(serial == 0){
             try{
                 int respostaSerial = int.Parse(arduinoPort.ReadLine());
-                if(respostaSerial == 3){
+                if(respostaSerial == 1){//3
                     serial = 0;
-                }else if(respostaSerial == 4){
+                    ButtonResposta1.GetComponent<Image>().color = Color.green;
+                }else if(respostaSerial == 2){//4
                     serial = 1;
+                    ButtonResposta2.GetComponent<Image>().color = Color.green;
                 }else if(respostaSerial == 5){
                     serial = 2;
                 }else if(respostaSerial == 6){
@@ -187,6 +231,7 @@ public class GameController : MonoBehaviour{
             }catch(System.Exception){}
         }
         answerSeleted = serial;
+        AnswerSelected();
 
     }
     public void selectRespostaPlayer2(){
@@ -208,6 +253,7 @@ public class GameController : MonoBehaviour{
             }catch(System.Exception){}
         }
         answerSeleted = serial;
+        AnswerSelected();
 
     }
 }
