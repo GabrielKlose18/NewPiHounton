@@ -36,9 +36,8 @@ public class GameController : MonoBehaviour{
     private int player2Score;
     private int playerSelected;
     private int answerSeleted;
-
     private int respostaCorreta;
-
+    Color color;
     List<int> usedValues = new List<int>();
     List<GameObject> answerButtonGameObjects = new List<GameObject>();
     // Start is called before the first frame update
@@ -88,8 +87,9 @@ public class GameController : MonoBehaviour{
         textoTimer.text = "Timer: " + Mathf.Round(tempoRestante).ToString();
     }
 
-    public async void ShowQuestion(){
-        RemoveAnswerButtons();
+    private void ShowQuestion(){
+        PaintButton("all", 99);
+        // RemoveAnswerButtons();
         int random = UnityEngine.Random.Range(0,questionPool.Length);
         while(usedValues.Contains(random)){
             random = UnityEngine.Random.Range(0,questionPool.Length);
@@ -131,15 +131,9 @@ public class GameController : MonoBehaviour{
             // AnswerButton answerButton = answerButtongameObject.GetComponent<AnswerButton>();
             // answerButton.Setup(questionData.respostas[i]);
         }
-        await Invoke("whichPlayer", 0.5f);
+        Invoke("whichPlayer", 0.5f);
         tempoRestante = rodadaAtual.limiteDeTempo;// sempre q trocar as perguntas, resetar o tempo
-        if(playerSelected == 1){
-            Debug.Log("Player1 Joga");
-            // Invoke("selectRespostaPlayer1", 0.5f);
-        }else if(playerSelected == 2){
-            Debug.Log("Player2 Joga");
-            // Invoke("selectRespostaPlayer2", 0.5f);
-        }
+        
         
     }
 
@@ -152,14 +146,16 @@ public class GameController : MonoBehaviour{
 
     public void AnswerSelected(){
         if(answerSeleted == respostaCorreta){
+            PaintButton("green", answerSeleted);
             if(playerSelected == 1){
                 player1Score += rodadaAtual.pontosPorAcerto;
                 textoPontosPlayer1.text = "Player1 Score: " + player1Score.ToString();
             }else{
                 player2Score += rodadaAtual.pontosPorAcerto;
-                textoPontosPlayer2.text = "Player2 Score: " + player1Score.ToString();
+                textoPontosPlayer2.text = "Player2 Score: " + player2Score.ToString();
             }
-            
+        }else{
+            PaintButton("red", answerSeleted);
         }
 
         if(questionPool.Length > questionIndex + 1){
@@ -178,8 +174,11 @@ public class GameController : MonoBehaviour{
     public void EndRound(){
         arduinoPort.Close();
         rodadaAtiva = false;
-
-        dataController.EnviarNovoHighScore(player1Score);
+        if(player1Score > player2Score)
+            dataController.EnviarNovoHighScore(player1Score);
+        else
+            dataController.EnviarNovoHighScore(player2Score);
+            
         highScoreText.text = "High Score: "+dataController.GetHighScore().ToString();
         painelDePerguntas.SetActive(false);
         UIPanel.SetActive(false);
@@ -188,6 +187,41 @@ public class GameController : MonoBehaviour{
 
     public void ReturnToMenu(){
         SceneManager.LoadScene("Menu");
+    }
+
+    public void PaintButton(string cor, int button){
+        if(cor == "green")
+            ColorUtility.TryParseHtmlString("#00FF00", out color);
+        else if (cor == "red")
+            ColorUtility.TryParseHtmlString("#FF0000", out color);
+        else
+            ColorUtility.TryParseHtmlString("#FFF", out color);
+
+        switch (button){
+            case 0:
+                ButtonResposta1.GetComponent<Image>().color = color;
+            break;
+
+            case 1:
+                ButtonResposta2.GetComponent<Image>().color = color;
+            break;
+
+            case 2:
+                ButtonResposta3.GetComponent<Image>().color = color;
+            break;
+
+            case 3:
+                ButtonResposta4.GetComponent<Image>().color = color;
+            break;
+            
+            default:
+                ButtonResposta1.GetComponent<Image>().color = color;
+                ButtonResposta1.GetComponent<Image>().color = color;
+                ButtonResposta1.GetComponent<Image>().color = color;
+                ButtonResposta1.GetComponent<Image>().color = color;
+            break;
+        }
+
     }
 
     public void whichPlayer(){
@@ -207,22 +241,29 @@ public class GameController : MonoBehaviour{
             }catch(System.Exception){}
         }
         playerSelected = player;
+        if(playerSelected == 1){
+            // Debug.Log("Player1 Joga");
+            Invoke("selectRespostaPlayer1", 0.5f);
+        }else if(playerSelected == 2){
+            // Debug.Log("Player2 Joga");
+            Invoke("selectRespostaPlayer2", 0.5f);
+        }
         
     }
 
     public void selectRespostaPlayer1(){
         if(!arduinoPort.IsOpen)
             arduinoPort.Open();
-        int serial = 0;
-        while(serial == 0){
+        int serial = 99;
+        while(serial == 99){
             try{
                 int respostaSerial = int.Parse(arduinoPort.ReadLine());
                 if(respostaSerial == 1){//3
                     serial = 0;
-                    ButtonResposta1.GetComponent<Image>().color = Color.green;
+                    // ButtonResposta1.GetComponent<Image>().color = color;
                 }else if(respostaSerial == 2){//4
                     serial = 1;
-                    ButtonResposta2.GetComponent<Image>().color = Color.green;
+                    // ButtonResposta2.GetComponent<Image>().color = color;
                 }else if(respostaSerial == 5){
                     serial = 2;
                 }else if(respostaSerial == 6){
@@ -237,13 +278,13 @@ public class GameController : MonoBehaviour{
     public void selectRespostaPlayer2(){
         if(!arduinoPort.IsOpen)
             arduinoPort.Open();
-        int serial = 0;
-        while(serial == 0){
+        int serial = 99;
+        while(serial == 99){
             try{
                 int respostaSerial = int.Parse(arduinoPort.ReadLine());
-                if(respostaSerial == 7){
+                if(respostaSerial == 1){//7
                     serial = 0;
-                }else if(respostaSerial == 8){
+                }else if(respostaSerial == 2){//8
                     serial = 1;
                 }else if(respostaSerial == 9){
                     serial = 2;
