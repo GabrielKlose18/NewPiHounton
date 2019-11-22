@@ -196,6 +196,7 @@ public class GameController : MonoBehaviour{
             ColorUtility.TryParseHtmlString("#FF0000", out color);
         else
             ColorUtility.TryParseHtmlString("#FFF", out color);
+        
 
         switch (button){
             case 0:
@@ -216,9 +217,9 @@ public class GameController : MonoBehaviour{
             
             default:
                 ButtonResposta1.GetComponent<Image>().color = color;
-                ButtonResposta1.GetComponent<Image>().color = color;
-                ButtonResposta1.GetComponent<Image>().color = color;
-                ButtonResposta1.GetComponent<Image>().color = color;
+                ButtonResposta2.GetComponent<Image>().color = color;
+                ButtonResposta3.GetComponent<Image>().color = color;
+                ButtonResposta4.GetComponent<Image>().color = color;
             break;
         }
 
@@ -232,36 +233,30 @@ public class GameController : MonoBehaviour{
             try{
                 int playerSerial = int.Parse(arduinoPort.ReadLine());
                 if(playerSerial == 1){
-                    Debug.Log("Player 1");
+                    // Debug.Log("Player 1");
                     player = 1;
                 }else if(playerSerial == 2){
-                    Debug.Log("Player 2");
+                    // Debug.Log("Player 2");
                     player = 2;
                 }
             }catch(System.Exception){}
         }
         playerSelected = player;
-        if(playerSelected == 1){
-            // Debug.Log("Player1 Joga");
-            Invoke("selectRespostaPlayer1", 0.5f);
-        }else if(playerSelected == 2){
-            // Debug.Log("Player2 Joga");
-            Invoke("selectRespostaPlayer2", 0.5f);
-        }
+        Invoke("selectRespostaPlayer", 0.5f);
         
     }
 
-    public void selectRespostaPlayer1(){
+    public void selectRespostaPlayer(){
         if(!arduinoPort.IsOpen)
             arduinoPort.Open();
         int serial = 99;
         while(serial == 99){
             try{
                 int respostaSerial = int.Parse(arduinoPort.ReadLine());
-                if(respostaSerial == 1){//3
+                if(respostaSerial == 3){//3
                     serial = 0;
                     // ButtonResposta1.GetComponent<Image>().color = color;
-                }else if(respostaSerial == 2){//4
+                }else if(respostaSerial == 4){//4
                     serial = 1;
                     // ButtonResposta2.GetComponent<Image>().color = color;
                 }else if(respostaSerial == 5){
@@ -275,26 +270,5 @@ public class GameController : MonoBehaviour{
         AnswerSelected();
 
     }
-    public void selectRespostaPlayer2(){
-        if(!arduinoPort.IsOpen)
-            arduinoPort.Open();
-        int serial = 99;
-        while(serial == 99){
-            try{
-                int respostaSerial = int.Parse(arduinoPort.ReadLine());
-                if(respostaSerial == 1){//7
-                    serial = 0;
-                }else if(respostaSerial == 2){//8
-                    serial = 1;
-                }else if(respostaSerial == 9){
-                    serial = 2;
-                }else if(respostaSerial == 10){
-                    serial = 3;
-                }
-            }catch(System.Exception){}
-        }
-        answerSeleted = serial;
-        AnswerSelected();
-
-    }
+    
 }
