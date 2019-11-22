@@ -20,6 +20,7 @@ public class GameController : MonoBehaviour{
     public GameObject painelDePerguntas;
     public GameObject painelFimRodada;
     public GameObject UIPanel;
+    public GameObject PainelConexaoPerdida;
     public GameObject ButtonResposta1;
     public GameObject ButtonResposta2;
     public GameObject ButtonResposta3;
@@ -159,10 +160,10 @@ public class GameController : MonoBehaviour{
         }
 
         if(questionPool.Length > questionIndex + 1){
-            if(questionIndex == 2)// acabar a partida apos 3 perguntas
-                Invoke("EndRound", 1.5f);
-                // EndRound();
             questionIndex ++;
+            // if(questionIndex == 2)// acabar a partida apos 3 perguntas
+            //     Invoke("EndRound", 1.5f);
+                // EndRound();
             Invoke("ShowQuestion", 1.5f);
             // ShowQuestion();
         }else{
@@ -188,6 +189,14 @@ public class GameController : MonoBehaviour{
     public void ReturnToMenu(){
         SceneManager.LoadScene("Menu");
     }
+
+    
+    public void ConexaoPerdida(){
+        painelDePerguntas.SetActive(false);
+        UIPanel.SetActive(false);
+        PainelConexaoPerdida.SetActive(true);
+    }
+    
 
     public void PaintButton(string cor, int button){
         if(cor == "green")
@@ -227,9 +236,11 @@ public class GameController : MonoBehaviour{
 
     public void whichPlayer(){
         if(!arduinoPort.IsOpen)
-            arduinoPort.Open();
+            ConexaoPerdida();
         int player = 0;
         while(player == 0){
+            if(!arduinoPort.IsOpen)
+                break;
             try{
                 int playerSerial = int.Parse(arduinoPort.ReadLine());
                 if(playerSerial == 1){
@@ -241,6 +252,8 @@ public class GameController : MonoBehaviour{
                 }
             }catch(System.Exception){}
         }
+        if(!arduinoPort.IsOpen)
+            ConexaoPerdida();
         playerSelected = player;
         Invoke("selectRespostaPlayer", 0.5f);
         
@@ -248,9 +261,11 @@ public class GameController : MonoBehaviour{
 
     public void selectRespostaPlayer(){
         if(!arduinoPort.IsOpen)
-            arduinoPort.Open();
+            ConexaoPerdida();
         int serial = 99;
         while(serial == 99){
+            if(!arduinoPort.IsOpen)
+                break;
             try{
                 int respostaSerial = int.Parse(arduinoPort.ReadLine());
                 if(respostaSerial == 3){//3
@@ -266,6 +281,8 @@ public class GameController : MonoBehaviour{
                 }
             }catch(System.Exception){}
         }
+        if(!arduinoPort.IsOpen)
+            ConexaoPerdida();
         answerSeleted = serial;
         AnswerSelected();
 
