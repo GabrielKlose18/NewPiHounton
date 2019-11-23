@@ -14,6 +14,7 @@ public class GameController : MonoBehaviour{
     public Text textoPontosPlayer2;
     public Text textoTimer;
     public Text highScoreText;
+    public Text PlayerWin;
     
     public SimpleObjectPool answerButtonObjectPool;
     public Transform answerButtonParent;
@@ -107,16 +108,16 @@ public class GameController : MonoBehaviour{
             }
             switch (i){
                 case 0:
-                    ButtonResposta1.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    ButtonResposta1.GetComponentInChildren<Text>().text = "A - "+questionData.respostas[i].textoResposta;
                     break;
                 case 1:
-                    ButtonResposta2.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    ButtonResposta2.GetComponentInChildren<Text>().text = "B - "+questionData.respostas[i].textoResposta;
                     break;
                 case 2:
-                    ButtonResposta3.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    ButtonResposta3.GetComponentInChildren<Text>().text = "C - "+questionData.respostas[i].textoResposta;
                     break;
                 case 3:
-                    ButtonResposta4.GetComponentInChildren<Text>().text = questionData.respostas[i].textoResposta;
+                    ButtonResposta4.GetComponentInChildren<Text>().text = "D - "+questionData.respostas[i].textoResposta;
                     break;
                 default:
                     Debug.Log("Erro");
@@ -156,15 +157,16 @@ public class GameController : MonoBehaviour{
                 textoPontosPlayer2.text = "Player2 Score: " + player2Score.ToString();
             }
         }else{
+            PaintButton("light-green", respostaCorreta);
             PaintButton("red", answerSeleted);
         }
 
-        if(questionPool.Length > questionIndex + 1){
+        if(questionPool.Length > questionIndex + 9){// + 1
             questionIndex ++;
             // if(questionIndex == 2)// acabar a partida apos 3 perguntas
             //     Invoke("EndRound", 1.5f);
                 // EndRound();
-            Invoke("ShowQuestion", 1.5f);
+            Invoke("ShowQuestion", 2.0f);
             // ShowQuestion();
         }else{
             Invoke("EndRound", 1.5f);
@@ -175,10 +177,15 @@ public class GameController : MonoBehaviour{
     public void EndRound(){
         arduinoPort.Close();
         rodadaAtiva = false;
-        if(player1Score > player2Score)
+        if(player1Score > player2Score){
+            PlayerWin.text = "Player 1 Wins!!";
             dataController.EnviarNovoHighScore(player1Score);
-        else
+        }else if(player2Score > player1Score){
+            PlayerWin.text = "Player 2 Wins!!";
             dataController.EnviarNovoHighScore(player2Score);
+        }else{
+            PlayerWin.text = "Empate!!"; 
+        }
             
         highScoreText.text = "High Score: "+dataController.GetHighScore().ToString();
         painelDePerguntas.SetActive(false);
@@ -203,6 +210,8 @@ public class GameController : MonoBehaviour{
             ColorUtility.TryParseHtmlString("#00FF00", out color);
         else if (cor == "red")
             ColorUtility.TryParseHtmlString("#FF0000", out color);
+        else if(cor == "light-green")
+            ColorUtility.TryParseHtmlString("#90f0b5", out color);
         else
             ColorUtility.TryParseHtmlString("#FFF", out color);
         
